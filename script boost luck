@@ -1,6 +1,6 @@
 if game.PlaceId == 2753915549 then
 	-- Load the Rayfield Library using your raw GitHub link
-	local Rayfield = loadstring(game:HttpGet("PASTE_YOUR_RAW_URL_HERE"))()
+	local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/mukesh21groot/blox-fruit-script.lua/refs/heads/main/script%20boost%20luck"))()
 
 	local Players = game:GetService("Players")
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
