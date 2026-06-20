@@ -1,0 +1,85 @@
+if game.PlaceId == 2753915549 then
+	-- Load the Rayfield Library using your raw GitHub link
+	local Rayfield = loadstring(game:HttpGet("PASTE_YOUR_RAW_URL_HERE"))()
+
+	local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local Workspace = game:GetService("Workspace")
+
+	-- Setup verification (Requires a folder named "Fruits" inside ReplicatedStorage)
+	local FruitsFolder = ReplicatedStorage:WaitForChild("Fruits")
+
+	-- Configuration
+	local SPIN_COOLDOWN = 60 -- Cooldown in seconds
+	local playerCooldowns = {} -- Holds timestamps to track player wait times
+
+	-- Core Spin Logic
+	local function spinForFruit(player)
+		local userId = player.UserId
+		local currentTime = os.time()
+
+		-- Cooldown validation
+		if playerCooldowns[userId] and (currentTime - playerCooldowns[userId]) < SPIN_COOLDOWN then
+			local timeLeft = SPIN_COOLDOWN - (currentTime - playerCooldowns[userId])
+			warn(player.Name .. " must wait " .. timeLeft .. " more seconds.")
+			return false
+		end
+
+		-- Roll logic (1 to 100)
+		local roll = math.random(1, 100)
+		local chosenFruitName = ""
+
+		-- NEW HIGH LUCK CONFIGURATION:
+		-- Rolls 1 to 5   (5%): CommonFruit
+		-- Rolls 6 to 10  (5%): RareFruit
+		-- Rolls 11 to 100 (90%): LegendaryFruit
+		if roll <= 5 then
+			chosenFruitName = "CommonFruit"    -- 5% chance
+		elseif roll <= 10 then
+			chosenFruitName = "RareFruit"      -- 5% chance
+		else
+			chosenFruitName = "LegendaryFruit" -- 90% chance
+		end
+
+		-- Give item to player
+		local originalFruit = FruitsFolder:FindFirstChild(chosenFruitName)
+		if originalFruit then
+			local fruitClone = originalFruit:Clone()
+			fruitClone.Parent = player.Backpack -- Puts it in their inventory hotbar
+
+			print(player.Name .. " rolled a " .. roll .. " and won a " .. chosenFruitName .. "!")
+
+			playerCooldowns[userId] = currentTime -- Reset cooldown timestamp
+			return true
+		else
+			warn("Error: " .. chosenFruitName .. " is missing from ReplicatedStorage.Fruits!")
+			return false
+		end
+	end
+
+	-- Clean up player data when they leave
+	Players.PlayerRemoving:Connect(function(player)
+		playerCooldowns[player.UserId] = nil
+	end)
+
+	-- Activation Link
+	local spinPart = Workspace:FindFirstChild("SpinPart")
+
+	if spinPart then
+		local prompt = spinPart:FindFirstChildOfClass("ProximityPrompt")
+
+		if not prompt then
+			prompt = Instance.new("ProximityPrompt")
+			prompt.ActionText = "Spin for Fruit"
+			prompt.ObjectText = "Gacha Machine"
+			prompt.HoldDuration = 1
+			prompt.Parent = spinPart
+		end
+
+		prompt.Triggered:Connect(function(player)
+			spinForFruit(player)
+		end)
+	else
+		warn("Setup Alert: Please create a Part named 'SpinPart' in the Workspace!")
+	end
+end
